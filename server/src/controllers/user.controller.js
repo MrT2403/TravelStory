@@ -27,7 +27,6 @@ const create = async (req, res) => {
     });
 
     await user.save();
-
     const accessToken = jwt.sign(
       {
         userId: user._id,
@@ -60,59 +59,60 @@ const signin = async (req, res) => {
     if (!email || !password) {
       return res
         .status(400)
-        .json({ message: "Email and Password are required" });
+        .json({ error: true, message: "Email and Password are required" });
     }
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(404).json({ error: true, message: "User not found" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(400).json({ message: "Invalid Credentials" });
+      return res
+        .status(401)
+        .json({ error: true, message: "Invalid Credentials" });
     }
 
     const accessToken = jwt.sign(
-      {
-        userId: user._id,
-      },
+      { userId: user._id },
       process.env.ACCESS_TOKEN_SECRET,
-      {
-        expiresIn: "48h",
-      }
+      { expiresIn: "48h" }
     );
 
     return res.json({
       error: false,
       message: "Login Successful",
-      user: {
-        fullname: user.fullname,
-        email: user.email,
-      },
+      user: { fullname: user.fullname, email: user.email },
       accessToken,
     });
   } catch (error) {
-    console.log("Error: ", error);
+    console.error("Signin Error:", error);
+    return res.status(500).json({ error: true, message: "Server error" });
   }
 };
 
 const getInfo = async (req, res) => {
   try {
     const { userId } = req.user;
-    const isUser = await User.findOne({ _id: userId });
+    const isUser = await User.findById(userId);
 
     if (!isUser) {
-      return res.sendStatus(401);
+      return res.status(404).json({ error: true, message: "User not found" });
     }
 
     return res.json({
-      user: isUser,
-      message: "",
+      error: false,
+      user: {
+        fullname: isUser.fullname,
+        email: isUser.email,
+      },
+      message: "User info retrieved successfully",
     });
   } catch (error) {
-    console.log("Error: ", error);
+    console.error("GetInfo Error:", error);
+    return res.status(500).json({ error: true, message: "Server error" });
   }
 };
 

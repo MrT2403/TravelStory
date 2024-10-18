@@ -23,4 +23,8 @@
   .btn-primary {
     @apply w-full text-sm font-medium text-white bg-cyan-500 shadow-lg shadow-cyan-200/50 p-[10px] rounded-full my-1 hover:bg-cyan-200 hover:text-primary;
   }
+
+  .login-ui-box {
+    @apply w-80 h-[450px] rounded-full bg-primary absolute rotate-45;
+  }
 }
