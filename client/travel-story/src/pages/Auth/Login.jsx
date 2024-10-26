@@ -29,8 +29,6 @@ const Login = () => {
     try {
       const { response, error } = await userApi.signin({ email, password });
 
-      console.log("Login Response:", response);
-
       if (response && !error) {
         setToken(response.accessToken);
         navigate("/dashboard");

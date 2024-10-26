@@ -3,7 +3,9 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import dotenv from "dotenv";
 
+dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -65,10 +67,9 @@ const imageUpload = async (req, res) => {
       });
     }
 
-    const imageUrl = `http://localhost:5000/api/v1/uploads/${req.file.filename}`;
+    const imageUrl = `${process.env.BASE_URL}/api/v1/uploads/${req.file.filename}`;
 
     res.status(201).json({ imageUrl });
-    console.log(imageUrl);
   } catch (error) {
     res.status(500).json({ error: true, message: error.message });
   }
@@ -157,7 +158,7 @@ const deleteStory = async (req, res) => {
 
     const imageUrl = travelStory.imageUrl;
     const filename = path.basename(imageUrl);
-    const filePath = path.join(__dirname, "uploads", filename);
+    const filePath = path.join(__dirname, "../uploads", filename);
 
     fs.unlink(filePath, (err) => {
       if (err) {

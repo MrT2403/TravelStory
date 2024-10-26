@@ -15,7 +15,12 @@ privateClient.interceptors.request.use((config) => {
   if (token) {
     config.headers["Authorization"] = `Bearer ${token}`;
   }
-  config.headers["Content-Type"] = "application/json";
+
+  // Chỉ thiết lập Content-Type nếu không phải là FormData
+  if (!(config.data instanceof FormData)) {
+    config.headers["Content-Type"] = "application/json";
+  }
+
   return config;
 });
 

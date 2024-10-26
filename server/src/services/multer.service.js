@@ -13,19 +13,19 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
+  destination: function (req, file, callback) {
+    callback(null, uploadsDir);
   },
-  filename: function (req, file, cv) {
-    cv(null, Date.now() + path.extname(file.originalname));
+  filename: function (req, file, callback) {
+    callback(null, Date.now() + path.extname(file.originalname));
   },
 });
 
-const fileFilter = (req, file, cb) => {
+const fileFilter = (req, file, callback) => {
   if (file.mimetype.startsWith("image/")) {
-    cb(null, true);
+    callback(null, true);
   } else {
-    cb(new Error("Only images are allowed"), false);
+    callback(new Error("Only JPEG and JFIF images are allowed"), false);
   }
 };
 

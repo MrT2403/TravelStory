@@ -30,7 +30,7 @@ router.post("/search", authenticateToken, storyController.search);
 // filter date range
 router.put("/filter", authenticateToken, storyController.filterByDate);
 
-router.get(
+router.post(
   "/image-upload",
   upload.single("image"),
   storyController.imageUpload

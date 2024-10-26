@@ -15,8 +15,6 @@ const userApi = {
         password,
       });
 
-      console.log("API Response Data:", data);
-
       if (data && !data.error) {
         return { response: data };
       } else {
