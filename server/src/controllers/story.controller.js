@@ -176,7 +176,6 @@ const updateFavorite = async (req, res) => {
   const { id } = req.params;
   const { userId } = req.user;
   const { isFavorite } = req.body;
-
   try {
     const travelStory = await TravelStory.findOne({ _id: id, userId: userId });
     if (!travelStory) {

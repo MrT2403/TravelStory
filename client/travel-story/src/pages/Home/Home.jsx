@@ -15,6 +15,7 @@ const Home = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [allStory, setAllStory] = useState([]);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [openAddModal, setOpenAddModal] = useState({
     isShown: false,
     type: "add",
@@ -45,37 +46,30 @@ const Home = () => {
   const handleViewStory = (data) => {};
 
   const updateIsFavourite = async (storyData) => {
+    if (isUpdating) return;
+
     try {
+      setIsUpdating(true);
+
       const updatedStories = allStory.map((story) =>
         story._id === storyData._id
-          ? { ...story, isFavourite: !story.isFavourite }
+          ? { ...story, isFavorite: !story.isFavorite }
           : story
       );
       setAllStory(updatedStories);
 
-      const updateStoryData = await storyApi.updateFavourite({
-        storyId: storyData._id,
-      });
-
-      console.log("updatestorydata: ", updateStoryData);
+      const updateStoryData = await storyApi.updateFavourite(storyData._id);
 
       if (updateStoryData.response && updateStoryData.response.story) {
         toast.success("Story updated successfully");
-        getTravelStory();
-      }
-
-      if (updateStoryData.error) {
-        const revertedStories = allStory.map((story) =>
-          story._id === storyData._id
-            ? { ...story, isFavourite: story.isFavourite }
-            : story
-        );
-        setAllStory(revertedStories);
-
-        console.error("Failed to update favourite:", updateStoryData.error);
+      } else if (updateStoryData.error) {
+        throw new Error(updateStoryData.error);
       }
     } catch (error) {
       console.error("Error updating favourite:", error);
+      toast.error("Failed to update favourite");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -100,7 +94,7 @@ const Home = () => {
                       story={item.story}
                       date={item.visitedDate}
                       visitedLocation={item.visitedLocation}
-                      isFavourite={item.isFavourite}
+                      isFavorite={item.isFavorite}
                       onEdit={() => handleEdit(item)}
                       onClick={() => handleViewStory(item)}
                       onFavouriteClick={() => updateIsFavourite(item)}

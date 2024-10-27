@@ -8,7 +8,7 @@ const TravelStoryCard = ({
   date,
   story,
   visitedLocation,
-  isFavourite,
+  isFavorite,
   onFavouriteClick,
   onClick,
 }) => {
@@ -26,7 +26,7 @@ const TravelStoryCard = ({
         onClick={onFavouriteClick}
       >
         <FaHeart
-          className={`icon-btn ${isFavourite ? "text-red-500" : "text-white"}`}
+          className={`icon-btn ${isFavorite ? "text-red-500" : "text-white"}`}
         ></FaHeart>
       </button>
 

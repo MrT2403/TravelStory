@@ -27,8 +27,9 @@ const storyApi = {
 
   updateFavourite: async (storyId) => {
     try {
-      const url = storyEndpoints.updateFavourite(storyId);
-      const data = await privateClient.put(url);
+      const data = await privateClient.put(
+        storyEndpoints.updateFavourite(storyId)
+      );
 
       console.log("API Response:", data);
 
