@@ -39,8 +39,10 @@ const TravelStoryCard = ({
             </span>
           </div>
         </div>
-
-        <p className="text-xs text-slate-600 mt-2 ">{story?.slice(0, 60)}</p>
+        <p className="text-xs text-slate-500 mt-2">{title}</p>
+        {/* <p className="text-xs text-slate-600 mt-2 story-desc">
+          {story?.slice(0, 60)}
+        </p> */}
 
         <div className="inline-flex items-center gap-2 text-[13px] text-cyan-600 bg-cyan-200/40 rounded mt-3 px-2 py-1">
           <GrMapLocation className="text-sm"></GrMapLocation>

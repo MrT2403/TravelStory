@@ -14,21 +14,73 @@ const AddEditTravelStory = ({
   onClose,
   getAllTravelStory,
 }) => {
-  const [visitedDate, setVisitedDate] = useState(null);
-  const [storyImg, setStoryImg] = useState(null);
-  const [story, setStory] = useState("");
-  const [visitedLocation, setVistedLocation] = useState([]);
-  const [title, setTitle] = useState("");
+  const [visitedDate, setVisitedDate] = useState(
+    storyInfo?.visitedDate || null
+  );
+  const [storyImg, setStoryImg] = useState(storyInfo?.imageUrl || null);
+  const [story, setStory] = useState(storyInfo?.story || "");
+  const [visitedLocation, setVisitedLocation] = useState(
+    storyInfo?.visitedLocation || []
+  );
+  const [title, setTitle] = useState(storyInfo?.title || "");
   const [error, setError] = useState();
 
-  const updateTravelStory = async () => {};
+  const resetState = () => {
+    setVisitedDate(null);
+    setStoryImg(null);
+    setStory("");
+    setVisitedLocation([]);
+    setTitle("");
+  };
+
+  const updateTravelStory = async () => {
+    try {
+      let imageUrl = storyInfo?.imageUrl || "";
+
+      if (storyImg && storyImg !== storyInfo?.imageUrl) {
+        const imgUploadRes = await imageApi.uploadImage(storyImg);
+        if (imgUploadRes?.imageUrl) {
+          imageUrl = imgUploadRes.imageUrl;
+        } else {
+          throw new Error("Image upload failed.");
+        }
+      }
+
+      const updatedStoryData = {
+        title,
+        story,
+        imageUrl,
+        visitedLocation,
+        visitedDate: visitedDate
+          ? moment(visitedDate).valueOf()
+          : moment().valueOf(),
+      };
+
+      const response = await storyApi.editStory(
+        storyInfo._id,
+        updatedStoryData
+      );
+
+      if (response?.response?.story) {
+        toast.success("Story updated successfully!");
+
+        await getAllTravelStory();
+        resetState();
+        onClose();
+      } else {
+        throw new Error(response?.error || "Failed to update story.");
+      }
+    } catch (error) {
+      console.error("Error updating travel story:", error);
+      toast.error(error.message || "Failed to update story. Please try again.");
+    }
+  };
 
   const addNewTravelStory = async () => {
     try {
       let imageUrl = "";
       if (storyImg) {
         const imgUploadRes = await imageApi.uploadImage(storyImg);
-
         if (imgUploadRes?.imageUrl) {
           imageUrl = imgUploadRes.imageUrl;
         } else {
@@ -49,8 +101,10 @@ const AddEditTravelStory = ({
       const response = await storyApi.addStory(storyData);
 
       if (response?.response?.story) {
-        toast.success("Story Added Successfully");
-        getAllTravelStory();
+        toast.success("Story added successfully!");
+
+        await getAllTravelStory();
+        resetState();
         onClose();
       } else {
         throw new Error(response?.error || "Failed to add story.");
@@ -74,18 +128,18 @@ const AddEditTravelStory = ({
 
     setError("");
 
-    if (type == "edit") {
-      updateTravelStory();
+    if (type === "edit") {
+      await updateTravelStory();
     } else {
-      addNewTravelStory();
+      await addNewTravelStory();
     }
   };
 
   return (
-    <div>
+    <div className="relative">
       <div className="flex items-center justify-between">
         <h5 className="text-xl font-medium text-slate-700">
-          {type === "add" ? "Add Story" : "Update story"}
+          {type === "add" ? "Add Story" : "Update Story"}
         </h5>
 
         <div>
@@ -135,7 +189,6 @@ const AddEditTravelStory = ({
         <div className="flex flex-col gap-2 mt-4">
           <label className="input-label">STORY</label>
           <textarea
-            type="text"
             className="text-sm text-slate-950 outline-none bg-slate-100 p-2 rounded"
             placeholder="Your Story"
             rows={10}
@@ -144,7 +197,7 @@ const AddEditTravelStory = ({
           ></textarea>
         </div>
 
-        <TagInput tags={visitedLocation} setTags={setVistedLocation}></TagInput>
+        <TagInput tags={visitedLocation} setTags={setVisitedLocation} />
       </div>
     </div>
   );

@@ -123,7 +123,7 @@ const editStory = async (req, res) => {
         .json({ error: true, message: "Travel story not found" });
     }
 
-    const placeholderImgUrl = `http://localhost:5000/assets/cr7.jpg`;
+    const placeholderImgUrl = `http://localhost:5000/assets/cute.jpg`;
 
     travelStory.title = title;
     travelStory.story = story;

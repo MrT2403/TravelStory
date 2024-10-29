@@ -9,6 +9,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { MdAdd } from "react-icons/md";
 import Modal from "react-modal";
 import AddEditTravelStory from "./AddEditTravelStory";
+import ViewTravelStory from "./ViewTravelStory";
+import EmptyCard from "../../components/cards/EmptyCard";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -19,6 +21,11 @@ const Home = () => {
   const [openAddModal, setOpenAddModal] = useState({
     isShown: false,
     type: "add",
+    data: null,
+  });
+
+  const [openViewModal, setOpenViewModal] = useState({
+    isShown: false,
     data: null,
   });
 
@@ -41,13 +48,30 @@ const Home = () => {
     }
   };
 
-  const handleEdit = (data) => {};
+  const handleEdit = (data) => {
+    setOpenAddModal({ isShown: true, type: "edit", data: data });
+  };
 
-  const handleViewStory = (data) => {};
+  const handleViewStory = (data) => {
+    setOpenViewModal({ isShown: true, data });
+  };
+
+  const handleDeleteStory = async (storyId) => {
+    try {
+      const deleteData = await storyApi.deleteStory(storyId);
+
+      if (deleteData.message) {
+        toast.success(deleteData.message);
+        setOpenViewModal({ isShown: false, data: null });
+        await getTravelStory();
+      }
+    } catch (error) {
+      console.log("Getting Delete Error: ", error);
+    }
+  };
 
   const updateIsFavourite = async (storyData) => {
     if (isUpdating) return;
-
     try {
       setIsUpdating(true);
 
@@ -58,7 +82,10 @@ const Home = () => {
       );
       setAllStory(updatedStories);
 
-      const updateStoryData = await storyApi.updateFavourite(storyData._id);
+      const updateStoryData = await storyApi.updateFavourite(
+        storyData._id,
+        !storyData.isFavorite
+      );
 
       if (updateStoryData.response && updateStoryData.response.story) {
         toast.success("Story updated successfully");
@@ -90,12 +117,12 @@ const Home = () => {
                   return (
                     <TravelStoryCard
                       key={item._id}
+                      title={item.title}
                       imgUrl={item.imageUrl}
                       story={item.story}
                       date={item.visitedDate}
                       visitedLocation={item.visitedLocation}
                       isFavorite={item.isFavorite}
-                      onEdit={() => handleEdit(item)}
                       onClick={() => handleViewStory(item)}
                       onFavouriteClick={() => updateIsFavourite(item)}
                     ></TravelStoryCard>
@@ -103,7 +130,11 @@ const Home = () => {
                 })}
               </div>
             ) : (
-              <>Empty Card Here</>
+              <EmptyCard
+                openAddModal={() =>
+                  setOpenAddModal({ isShown: true, type: "add", data: null })
+                }
+              ></EmptyCard>
             )}
           </div>
           <div className="w-[320px]"></div>
@@ -135,6 +166,38 @@ const Home = () => {
           />
         </Modal>
       )}
+
+      <Modal
+        isOpen={openViewModal.isShown}
+        onRequestClose={() =>
+          setOpenAddModal({
+            isShown: false,
+            type: "add",
+            data: null,
+          })
+        }
+        style={{
+          overlay: {
+            backgroundColor: "rgba(0,0,0,0.2)",
+            zIndex: 999,
+          },
+        }}
+        appElement={document.getElementById("root")}
+        className="model-box"
+      >
+        <ViewTravelStory
+          type={openViewModal.type}
+          storyInfo={openViewModal.data || null}
+          onClose={(prevState) =>
+            setOpenViewModal({ ...prevState, isShown: false })
+          }
+          onDeleteClick={() => handleDeleteStory(openViewModal.data._id)}
+          onEditclick={() => {
+            setOpenViewModal((prevState) => ({ ...prevState, isShown: false }));
+            handleEdit(openViewModal.data || null);
+          }}
+        ></ViewTravelStory>
+      </Modal>
 
       <button
         className="w-16 h-16 flex items-center justify-center rounded-full bg-primary hover:bg-cyan-400 fixed right-10 bottom-10"

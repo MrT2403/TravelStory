@@ -66,6 +66,10 @@
   }
 
   .btn-delete {
-    @apply bg-rose-50 text-rose-500 shadow-rose-100/0 border border-rose-100 hover:text-white;
+    @apply bg-rose-50 text-rose-500 shadow-rose-100/0 border border-rose-100 hover:text-white hover:bg-rose-500;
+  }
+
+  .story-desc {
+    @apply line-clamp-2 text-sm text-slate-700 leading-6;
   }
 }
