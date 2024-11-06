@@ -7,10 +7,11 @@ import {
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 import Home from "./pages/Home/Home";
+import { SearchProvider } from "./contexts/SearchContext";
 
 const App = () => {
   return (
-    <div>
+    <SearchProvider>
       <Router>
         <Routes>
           <Route path="/" element={<Root />}></Route>
@@ -19,7 +20,7 @@ const App = () => {
           <Route path="/signup" element={<Signup />}></Route>
         </Routes>
       </Router>
-    </div>
+    </SearchProvider>
   );
 };
 

@@ -5,7 +5,7 @@ const ProfileInfo = ({ userInfo, onLogout }) => {
     userInfo && (
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 flex items-center justify-center rounded-full text-state-950 font-medium bg-slate-100">
-          {getInitials(userInfo ? userInfo.fullname : "")}
+          {getInitials(userInfo ? userInfo.user.fullname : "")}
         </div>
         <div className="">
           <p className="text-sm font-medium">{userInfo.fullname || ""}</p>

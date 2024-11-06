@@ -6,6 +6,9 @@ const storyEndpoints = {
   addStory: "story/add-travel-story",
   editStory: (storyId) => `story/edit-story/${storyId}`,
   deleteStory: (storyId) => `story/delete-story/${storyId}`,
+  search: (query) => `story/search?query=${query}`,
+  filterByDate: (startDate, endDate) =>
+    `story/filter?startDate=${startDate}&endDate=${endDate}`,
 };
 
 const storyApi = {
@@ -70,7 +73,7 @@ const storyApi = {
         storyEndpoints.editStory(storyId),
         storyData
       );
-      console.log("dataaaaa: ", data);
+
       if (data && !data.error) {
         return { response: data };
       } else {
@@ -90,6 +93,33 @@ const storyApi = {
       return data;
     } catch (error) {
       console.error("API Delete Story Error: ", error);
+      return { error: error.message || "Failed to delete story." };
+    }
+  },
+
+  searchStory: async (query) => {
+    try {
+      const searchQuery = await privateClient.get(storyEndpoints.search(query));
+      return searchQuery;
+    } catch (error) {
+      console.error("API Search Story Error: ", error);
+      return { error: error.message || "Failed to search story." };
+    }
+  },
+
+  filterByDate: async (startDate, endDate) => {
+    try {
+      const responseFilterData = await privateClient.get(
+        storyEndpoints.filterByDate(
+          encodeURIComponent(startDate),
+          encodeURIComponent(endDate)
+        )
+      );
+
+      return responseFilterData;
+    } catch (error) {
+      console.error("Error on Filter By Date API: ", error);
+      return { error: true, message: "Failed to filter by date." };
     }
   },
 };

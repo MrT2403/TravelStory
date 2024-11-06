@@ -11,13 +11,19 @@ import Modal from "react-modal";
 import AddEditTravelStory from "./AddEditTravelStory";
 import ViewTravelStory from "./ViewTravelStory";
 import EmptyCard from "../../components/cards/EmptyCard";
+import { useSearch } from "../../contexts/SearchContext";
+import { DayPicker } from "react-day-picker";
+import moment from "moment";
 
 const Home = () => {
+  const { searchResults, searchQuery, isSearching } = useSearch();
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [allStory, setAllStory] = useState([]);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
+
   const [openAddModal, setOpenAddModal] = useState({
     isShown: false,
     type: "add",
@@ -42,7 +48,6 @@ const Home = () => {
 
   const getTravelStory = async () => {
     const storyData = await storyApi.getAllStory();
-
     if (storyData.response && storyData.response.stories) {
       setAllStory(storyData.response.stories);
     }
@@ -59,14 +64,14 @@ const Home = () => {
   const handleDeleteStory = async (storyId) => {
     try {
       const deleteData = await storyApi.deleteStory(storyId);
-
       if (deleteData.message) {
         toast.success(deleteData.message);
         setOpenViewModal({ isShown: false, data: null });
         await getTravelStory();
       }
     } catch (error) {
-      console.log("Getting Delete Error: ", error);
+      console.log("Error deleting story:", error);
+      toast.error("Failed to delete story");
     }
   };
 
@@ -100,44 +105,151 @@ const Home = () => {
     }
   };
 
+  const filterStoriesByDate = async (day) => {
+    try {
+      if (!day?.from && !day?.to) {
+        await getTravelStory();
+        return;
+      }
+
+      const startDate = day.from ? moment(day.from).valueOf() : null;
+      const endDate = day.to ? moment(day.to).valueOf() : null;
+
+      const response = await storyApi.filterByDate(startDate, endDate);
+      if (response && response.stories) {
+        setAllStory(response.stories);
+      } else {
+        console.log("No stories found for the selected date range.");
+        setAllStory([]);
+      }
+    } catch (error) {
+      console.error("Error filtering stories by date:", error);
+    }
+  };
+
+  const handleDayClick = (day) => {
+    setDateRange(day);
+    filterStoriesByDate(day);
+  };
+
   useEffect(() => {
-    getUserInfo();
-    getTravelStory();
+    const fetchData = async () => {
+      await getUserInfo();
+      await getTravelStory();
+    };
+    fetchData();
   }, []);
+
+  const renderStories = (stories) => (
+    <div className="grid grid-cols-4 gap-4">
+      {stories.map((item) => (
+        <TravelStoryCard
+          key={item._id}
+          title={item.title}
+          imgUrl={item.imageUrl}
+          story={item.story}
+          date={item.visitedDate}
+          visitedLocation={item.visitedLocation}
+          isFavorite={item.isFavorite}
+          onClick={() => handleViewStory(item)}
+          onFavouriteClick={() => updateIsFavourite(item)}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <>
-      {loading ? <p>Loading...</p> : <Navbar userInfo={userInfo?.user} />}
+      {loading ? <p>Loading...</p> : <Navbar userInfo={userInfo} />}
       <div className="container mx-auto py-10">
         <div className="flex gap-7">
           <div className="flex-1">
-            {allStory.length > 0 ? (
-              <div className="grid grid-cols-4 gap-4">
-                {allStory.map((item) => {
-                  return (
-                    <TravelStoryCard
-                      key={item._id}
-                      title={item.title}
-                      imgUrl={item.imageUrl}
-                      story={item.story}
-                      date={item.visitedDate}
-                      visitedLocation={item.visitedLocation}
-                      isFavorite={item.isFavorite}
-                      onClick={() => handleViewStory(item)}
-                      onFavouriteClick={() => updateIsFavourite(item)}
-                    ></TravelStoryCard>
-                  );
-                })}
-              </div>
+            <div className="mb-4 flex items-center justify-between gap-2">
+              {dateRange?.from || dateRange?.to ? (
+                <div className="flex items-center gap-2">
+                  {allStory.length > 0 ? (
+                    <p className="text-lg">
+                      Showing {allStory.length} result
+                      {allStory.length > 1 ? "s" : ""} from{" "}
+                      {moment(dateRange.from || dateRange.to).format(
+                        "MMMM Do YYYY"
+                      )}
+                      {dateRange.to && dateRange.from
+                        ? ` to ${moment(dateRange.to).format("MMMM Do YYYY")}`
+                        : ""}
+                      .
+                    </p>
+                  ) : (
+                    <p className="text-lg">
+                      Showing 0 result from{" "}
+                      {moment(dateRange.from || dateRange.to).format(
+                        "MMMM Do YYYY"
+                      )}
+                      {dateRange.to && dateRange.from
+                        ? ` to ${moment(dateRange.to).format("MMMM Do YYYY")}`
+                        : ""}
+                      .
+                    </p>
+                  )}
+                  <button
+                    onClick={() => {
+                      setDateRange({ from: null, to: null });
+                      filterStoriesByDate({ from: null, to: null });
+                    }}
+                    className="ml-12 text-sm hover:text-gray-700 p-3 bg-red-500 text-white rounded-md"
+                  >
+                    Clear Date Filter
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            {searchQuery ? (
+              isSearching ? (
+                <p>Searching...</p>
+              ) : searchResults.length > 0 ? (
+                <>
+                  <h2 className="text-2xl font-medium mb-4">Search Results</h2>
+                  {renderStories(searchResults)}
+                </>
+              ) : (
+                <p className="text-gray-500 text-center mt-12">
+                  No search results found.
+                </p>
+              )
             ) : (
-              <EmptyCard
-                openAddModal={() =>
-                  setOpenAddModal({ isShown: true, type: "add", data: null })
-                }
-              ></EmptyCard>
+              <>
+                <h2 className="text-2xl font-medium mb-4">All Stories</h2>
+                {allStory.length > 0 ? (
+                  renderStories(allStory)
+                ) : (
+                  <EmptyCard
+                    openAddModal={() =>
+                      setOpenAddModal({
+                        isShown: true,
+                        type: "add",
+                        data: null,
+                      })
+                    }
+                  />
+                )}
+              </>
             )}
           </div>
-          <div className="w-[320px]"></div>
+
+          <div className="w-[340px] mt-12">
+            <div className="bg-white border border-slate-200 shadow-lg shadow-slate-200/60 rounded-lg">
+              <div className="p-3">
+                <DayPicker
+                  captionLayout="dropdown-buttons"
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={handleDayClick}
+                  pageNavigation
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

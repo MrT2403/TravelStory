@@ -25,10 +25,10 @@ router.put(
   storyController.updateFavorite
 );
 
-router.post("/search", authenticateToken, storyController.search);
+router.get("/search", authenticateToken, storyController.search);
 
 // filter date range
-router.put("/filter", authenticateToken, storyController.filterByDate);
+router.get("/filter", authenticateToken, storyController.filterByDate);
 
 router.post(
   "/image-upload",
