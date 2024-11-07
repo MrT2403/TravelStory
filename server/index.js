@@ -5,11 +5,19 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 
 dotenv.config();
+
+const corsOptions = {
+  origin: ["http://localhost:5173", "https://travel-story-tau.vercel.app"],
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
 const app = express();
 const PORT = process.env.PORT;
 
 app.use(express.json());
-app.use(cors({ origin: "*" }));
+app.use(cors(corsOptions));
 app.use("/api/v1", routes);
 
 mongoose
