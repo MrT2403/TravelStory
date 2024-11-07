@@ -10,6 +10,10 @@ const __dirname = dirname(__filename);
 
 const router = express.Router();
 
+router.get("/", (req, res) => {
+  res.send("This is Travel Story API");
+});
+
 router.use("/user", userRoute);
 router.use("/story", storyRoute);
 router.use("/uploads", express.static(path.join(__dirname, "../uploads")));
